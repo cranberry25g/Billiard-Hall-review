@@ -622,6 +622,20 @@ function renderReviews(reviews, comments = []) {
                   일반 방문자
                 </span>
                 <p style="margin:6px 0 0;white-space:pre-wrap;">${escapeHtml(comment.content)}</p>
+
+                ${
+                  window.isAdminLoggedIn
+                    ? `
+                      <button
+                        type="button"
+                        onclick="deleteReviewCommentFromButton('${escapeHtml(String(comment.id))}')"
+                        style="margin-top:8px;padding:6px 10px;border:1px solid #e5a5a5;border-radius:6px;background:#fff;color:#b42318;cursor:pointer;"
+                      >
+                        댓글 삭제
+                      </button>
+                    `
+                    : ""
+                }
               </div>
             `).join("")}
           </div>
@@ -842,6 +856,54 @@ async function saveReviewCommentFromButton(reviewId) {
     }
   } finally {
     if (commentButton) commentButton.disabled = false;
+  }
+}
+  
+/* 관리자 전용 방문자 댓글 삭제 */
+async function deleteReviewCommentFromButton(commentId) {
+  if (!window.isAdminLoggedIn) {
+    alert("관리자만 댓글을 삭제할 수 있어요.");
+    return;
+  }
+
+  const confirmed = confirm(
+    "이 댓글을 삭제할까요?\n삭제한 댓글은 복구할 수 없어요."
+  );
+
+  if (!confirmed) return;
+
+  try {
+    // 현재 Supabase 로그인 계정 확인
+    const { data: { user }, error: userError } =
+      await supabaseClient.auth.getUser();
+
+    if (
+      userError ||
+      !user ||
+      user.id !== ADMIN_USER_ID
+    ) {
+      alert("관리자 계정으로 로그인해 주세요.");
+      return;
+    }
+
+    // Supabase RLS 정책에 따라 댓글 삭제
+    const { error } = await supabaseClient
+      .from("review_comments")
+      .delete()
+      .eq("id", commentId);
+
+    if (error) {
+      console.error("댓글 삭제 오류:", error);
+      alert("댓글 삭제에 실패했어요. 권한 설정을 확인해 주세요.");
+      return;
+    }
+
+    await loadReviews();
+    alert("댓글이 삭제되었어요!");
+
+  } catch (error) {
+    console.error("댓글 삭제 중 오류:", error);
+    alert("댓글 삭제 중 문제가 발생했어요.");
   }
 }
 
