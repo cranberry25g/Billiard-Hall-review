@@ -587,7 +587,16 @@ function getVisitorId() {
         : "";
 
       const reviewId = String(review.id);
-      const visitorId = getVisitorId();
+      let visitorId = localStorage.getItem("fan_visitor_id");
+
+if (!visitorId) {
+  visitorId = window.crypto?.randomUUID
+    ? window.crypto.randomUUID()
+    : "visitor-" + Date.now() + "-" +
+      Math.random().toString(36).slice(2);
+
+  localStorage.setItem("fan_visitor_id", visitorId);
+}
 
 const reviewLikes = likes.filter(
   (like) => String(like.review_id) === reviewId
@@ -806,7 +815,16 @@ async function saveReviewReplyFromButton(reviewId) {
   // 리뷰 좋아요 등록 및 취소
 async function toggleReviewLike(reviewId) {
   alert("좋아요 함수가 실행됐어!");
-  const visitorId = getVisitorId();
+  let visitorId = localStorage.getItem("fan_visitor_id");
+
+if (!visitorId) {
+  visitorId = window.crypto?.randomUUID
+    ? window.crypto.randomUUID()
+    : "visitor-" + Date.now() + "-" +
+      Math.random().toString(36).slice(2);
+
+  localStorage.setItem("fan_visitor_id", visitorId);
+}
 
   const buttons = document.querySelectorAll(
     `.review-card button[onclick="toggleReviewLike('${reviewId}')"]`
