@@ -556,9 +556,24 @@ function getVisitorId() {
 
   return visitorId;
 }
+// 리뷰 페이지 설정
+  const REVIEWS_PER_PAGE = 10;
+  let currentReviewPage = 1;
+
+// 페이지 이동 시 사용할 리뷰 데이터
+  let cachedReviews = [];
+  let cachedComments = [];
+  let cachedLikes = [];
   
  // 리뷰 목록 화면에 표시
 function renderReviews(reviews, comments = [], likes = []) {
+  if (!reviewList) return;
+
+  cachedReviews = reviews;
+  cachedComments = comments;
+  cachedLikes = likes;
+
+  if (reviews.length === 0) {
   
   // 방문자 식별자 가져오기
 function getVisitorId() {
@@ -581,7 +596,17 @@ function getVisitorId() {
     reviewList.innerHTML =
       '<p class="empty-reviews">아직 등록된 리뷰가 없습니다.</p>';
   } else {
-    reviewList.innerHTML = reviews.map((review) => {
+    const totalPages = Math.ceil(reviews.length / REVIEWS_PER_PAGE);
+
+currentReviewPage = Math.min(currentReviewPage, totalPages);
+
+const startIndex = (currentReviewPage - 1) * REVIEWS_PER_PAGE;
+const pageReviews = reviews.slice(
+  startIndex,
+  startIndex + REVIEWS_PER_PAGE
+);
+
+reviewList.innerHTML = pageReviews.map((review) => {
       const date = review.created_at
         ? new Date(review.created_at).toLocaleDateString("ko-KR")
         : "";
@@ -878,6 +903,28 @@ if (!visitorId) {
   }
 }
 
+  // 리뷰 페이지 이동
+function changeReviewPage(page) {
+  const totalPages = Math.ceil(
+    cachedReviews.length / REVIEWS_PER_PAGE
+  );
+
+  if (page < 1 || page > totalPages) return;
+
+  currentReviewPage = page;
+
+  renderReviews(
+    cachedReviews,
+    cachedComments,
+    cachedLikes
+  );
+
+  document.querySelector("#reviews")?.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+}
+  
  // Supabase에서 리뷰와 방문자 댓글 불러오기
 async function loadReviews() {
   if (notice) notice.textContent = "";
@@ -928,6 +975,51 @@ async function loadReviews() {
   }
 
   renderReviews(data || [], comments || [], likes || []);
+          </article>
+      `;
+    }).join("");
+        // 페이지 이동 버튼
+    if (totalPages > 1) {
+      const paginationHtml = `
+        <nav aria-label="리뷰 페이지" style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:6px;margin:24px 0;">
+          <button
+            type="button"
+            onclick="changeReviewPage(${currentReviewPage - 1})"
+            ${currentReviewPage === 1 ? "disabled" : ""}
+            style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;"
+          >
+            이전
+          </button>
+
+          ${Array.from({ length: totalPages }, (_, index) => {
+            const page = index + 1;
+
+            return `
+              <button
+                type="button"
+                onclick="changeReviewPage(${page})"
+                aria-current="${page === currentReviewPage ? "page" : "false"}"
+                style="min-width:36px;padding:8px 10px;border:1px solid ${page === currentReviewPage ? "#555" : "#ddd"};border-radius:8px;background:${page === currentReviewPage ? "#555" : "#fff"};color:${page === currentReviewPage ? "#fff" : "#333"};cursor:pointer;"
+              >
+                ${page}
+              </button>
+            `;
+          }).join("")}
+
+          <button
+            type="button"
+            onclick="changeReviewPage(${currentReviewPage + 1})"
+            ${currentReviewPage === totalPages ? "disabled" : ""}
+            style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;"
+          >
+            다음
+          </button>
+        </nav>
+      `;
+
+      reviewList.insertAdjacentHTML("beforeend", paginationHtml);
+    }
+  }
 }
 
   
@@ -1111,7 +1203,7 @@ if (reviewForm) {
       button.classList.toggle("active", rating <= 5);
       button.setAttribute("aria-pressed", String(rating === 5));
     });
-
+  currentReviewPage = 1; 
     await loadReviews();
 
     if (notice) notice.textContent = "리뷰가 등록되었어요!";
