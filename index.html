@@ -115,6 +115,31 @@
     }
 
     .button:hover { opacity: 0.85; }
+    
+    .hero-extra-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .hero-extra-button {
+      display: inline-block;
+      padding: 10px 16px;
+      border: 1px solid #789083;
+      border-radius: 5px;
+      background: transparent;
+      color: #f6f3eb;
+      text-decoration: none;
+      font-size: 12px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .hero-extra-button:hover {
+      background: #f6f3eb;
+      color: #193d32;
+    }
+
 
     .hero-art {
       min-height: 210px;
@@ -363,6 +388,18 @@
           默會
         </p>
         <a class="button" href="#reviews">방문 리뷰 보기 ↗</a>
+        
+        <!-- 추가 링크 버튼 -->
+        <div class="hero-extra-buttons">
+          <a class="hero-extra-button" href="https://www.whif.io/characters/650bf41a-0cb6-42b3-b24d-a14c94325973">
+            WHIF ↗
+          </a>
+
+          <a class="hero-extra-button" href="https://tikita.ai/ko/story/LSO2R0P5?referrer=5AE08P">
+            Tikita ↗
+          </a>
+        </div>
+
       </div>
       <div class="hero-art" aria-label="당구공 일러스트">
         <div class="eight-ball"><span>8</span></div>
