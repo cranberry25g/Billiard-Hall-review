@@ -785,7 +785,6 @@ const adminNotice = document.getElementById("adminNotice");
 function updateAdminUI(user) {
   const isAdmin = user?.id === ADMIN_USER_ID;
   window.isAdminLoggedIn = isAdmin;
-  console.log("관리자 로그인 상태:", window.isAdminLoggedIn);
 
   adminStatus.textContent = isAdmin
     ? "관리자로 로그인되어 있습니다."
