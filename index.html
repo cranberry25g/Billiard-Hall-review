@@ -541,8 +541,9 @@ ratingButtons.forEach((button, index) => {
   });
 });
 
-// 리뷰 목록 화면에 표시
-function renderReviews(reviews) {
+
+ // 리뷰 목록 화면에 표시
+function renderReviews(reviews, comments = []) {
   if (!reviewList) return;
 
   if (reviews.length === 0) {
@@ -554,50 +555,78 @@ function renderReviews(reviews) {
         ? new Date(review.created_at).toLocaleDateString("ko-KR")
         : "";
 
+      const reviewId = String(review.id);
 
-      const replyHtml = `
-        <div class="owner-reply"
-          style="margin-top:14px;padding:12px 14px;background:#f4f0e6;border-radius:8px;">
+      // 해당 리뷰에 달린 방문자 댓글만 가져오기
+      const reviewComments = comments.filter(
+        (comment) => String(comment.review_id) === reviewId
+      );
 
-          ${
-            review.reply
-              ? `
-                <strong style="display:block;margin-bottom:6px;">
-                  사장님 답글
-                </strong>
-                <p style="margin:0 0 12px;white-space:pre-wrap;">${escapeHtml(review.reply)}</p>
-              `
-              : ""
-          }
+      // 사장님 답글 또는 관리자 입력창이 있을 때만 영역 표시
+      const replyHtml =
+        review.reply || window.isAdminLoggedIn
+          ? `
+            <div class="owner-reply"
+              style="margin-top:14px;padding:12px 14px;background:#f4f0e6;border-radius:8px;">
 
-          ${
-            window.isAdminLoggedIn
-              ? `
-                <label for="reply-${escapeHtml(String(review.id))}"
-                  style="display:block;margin-bottom:6px;font-size:13px;">
-                  ${review.reply ? "답글 수정" : "답글 작성"}
-                </label>
+              ${
+                review.reply
+                  ? `
+                    <strong style="display:block;margin-bottom:6px;">
+                      사장님 답글
+                    </strong>
+                    <p style="margin:0 0 12px;white-space:pre-wrap;">${escapeHtml(review.reply)}</p>
+                  `
+                  : ""
+              }
 
-                <textarea
-                  id="reply-${escapeHtml(String(review.id))}"
-                  rows="3"
-                  maxlength="2000"
-                  placeholder="리뷰에 답글을 남겨 주세요."
-                  style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:8px;resize:vertical;"
-                >${escapeHtml(review.reply || "")}</textarea>
+              ${
+                window.isAdminLoggedIn
+                  ? `
+                    <label for="reply-${escapeHtml(reviewId)}"
+                      style="display:block;margin-bottom:6px;font-size:13px;">
+                      ${review.reply ? "답글 수정" : "답글 작성"}
+                    </label>
 
-                <button
-                  type="button"
-                  onclick="saveReviewReplyFromButton('${escapeHtml(String(review.id))}')"
-                  style="margin-top:8px;padding:9px 14px;border:0;border-radius:8px;cursor:pointer;"
-                >
-                  답글 저장
-                </button>
-              `
-              : ""
-          }
-        </div>
-      `;
+                    <textarea
+                      id="reply-${escapeHtml(reviewId)}"
+                      rows="3"
+                      maxlength="2000"
+                      placeholder="리뷰에 답글을 남겨 주세요."
+                      style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:8px;resize:vertical;"
+                    >${escapeHtml(review.reply || "")}</textarea>
+
+                    <button
+                      type="button"
+                      onclick="saveReviewReplyFromButton('${escapeHtml(reviewId)}')"
+                      style="margin-top:8px;padding:9px 14px;border:0;border-radius:8px;cursor:pointer;"
+                    >
+                      답글 저장
+                    </button>
+                  `
+                  : ""
+              }
+            </div>
+          `
+          : "";
+
+      // 방문자 댓글 목록
+      const commentsHtml = reviewComments.length
+        ? `
+          <div class="visitor-comments"
+            style="margin-top:12px;padding:12px;background:#f7f8fa;border-radius:8px;">
+            ${reviewComments.map((comment) => `
+              <div style="padding:8px 0;border-bottom:1px solid #e5e7eb;">
+                <strong>${escapeHtml(comment.nickname)}</strong>
+                <span style="font-size:12px;color:#64748b;margin-left:6px;">
+                  일반 방문자
+                </span>
+                <p style="margin:6px 0 0;white-space:pre-wrap;">${escapeHtml(comment.content)}</p>
+              </div>
+            `).join("")}
+          </div>
+        `
+        : "";
 
       return `
         <article class="review-card">
@@ -608,6 +637,7 @@ function renderReviews(reviews) {
           <div class="stars">${"★".repeat(Number(review.rating))}${"☆".repeat(5 - Number(review.rating))}</div>
           <p class="review-content">${escapeHtml(review.content)}</p>
           ${replyHtml}
+          ${commentsHtml}
         </article>
       `;
     }).join("");
@@ -626,7 +656,6 @@ function renderReviews(reviews) {
     averageElement.textContent = average.toFixed(1);
   }
 }
-
 
 /* 관리자 답글 저장 기능 */
 async function saveReviewReply(reviewId, replyText) {
@@ -666,7 +695,8 @@ async function saveReviewReplyFromButton(reviewId) {
 }
 
 
-// Supabase에서 리뷰 불러오기
+
+ // Supabase에서 리뷰와 방문자 댓글 불러오기
 async function loadReviews() {
   if (notice) notice.textContent = "";
 
@@ -686,8 +716,26 @@ async function loadReviews() {
     return;
   }
 
-  renderReviews(data || []);
+  const { data: comments, error: commentError } =
+    await supabaseClient
+      .from("review_comments")
+      .select("id, review_id, nickname, content, visitor_id, created_at")
+      .order("created_at", { ascending: true });
+
+  if (commentError) {
+    console.error("방문자 댓글 불러오기 오류:", commentError);
+
+    if (notice) {
+      notice.textContent =
+        "댓글을 불러오지 못했어요. Supabase 설정을 확인해 주세요.";
+    }
+
+    return;
+  }
+
+  renderReviews(data || [], comments || []);
 }
+
 
 // 새 리뷰 등록
 if (reviewForm) {
