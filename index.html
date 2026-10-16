@@ -1,0 +1,598 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8 BALL BILLIARDS | 당구장</title>
+  <style>
+    :root {
+      --green: #193d32;
+      --green-light: #315849;
+      --cream: #f6f3eb;
+      --white: #ffffff;
+      --text: #292e2a;
+      --muted: #858b83;
+      --line: #e8e7df;
+      --gold: #c59b50;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--cream);
+      color: var(--text);
+      font-family: Arial, "Noto Sans KR", sans-serif;
+      line-height: 1.6;
+    }
+
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    header {
+      background: var(--green);
+      color: white;
+      padding: 20px 7%;
+    }
+
+    .nav {
+      max-width: 1080px;
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+
+    .logo small {
+      display: block;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 3px;
+      color: #d7dfd5;
+    }
+
+    nav { display: flex; gap: 22px; }
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-size: 13px;
+    }
+    nav a:hover { color: #e4c78d; }
+
+    .hero {
+      background: var(--green);
+      color: white;
+      padding: 65px 7% 78px;
+    }
+
+    .hero-inner {
+      max-width: 1080px;
+      margin: auto;
+      display: grid;
+      grid-template-columns: 1.4fr 0.6fr;
+      align-items: center;
+      gap: 35px;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: #d9c48e;
+      font-weight: bold;
+    }
+
+    h1 {
+      font-size: clamp(34px, 5vw, 56px);
+      line-height: 1.25;
+      letter-spacing: -2px;
+      margin: 18px 0;
+    }
+
+    .hero p {
+      color: #e1e7e0;
+      font-size: 14px;
+      margin-bottom: 27px;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 12px 20px;
+      border: 0;
+      border-radius: 5px;
+      background: var(--cream);
+      color: var(--green);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .button:hover { opacity: 0.85; }
+
+    .hero-art {
+      min-height: 210px;
+      border: 1px solid #597366;
+      border-radius: 50% 50% 8px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #234a3c;
+      text-align: center;
+    }
+
+    .eight-ball {
+      width: 95px;
+      height: 95px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 25%, #646963, #101311 65%);
+      color: #202420;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 12px 25px #10251d80;
+    }
+
+    .eight-ball span {
+      width: 39px;
+      height: 39px;
+      background: #f8f6ed;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 21px;
+      font-weight: bold;
+    }
+
+    .hero-art p {
+      margin: 15px 0 0;
+      font-size: 10px;
+      letter-spacing: 3px;
+    }
+
+    main {
+      max-width: 900px;
+      margin: auto;
+      padding: 55px 22px 80px;
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 12px;
+      margin-bottom: 23px;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-size: 27px;
+      letter-spacing: -1px;
+    }
+
+    .section-heading p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .review-summary {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 19px 22px;
+      margin-bottom: 20px;
+    }
+
+    .summary-star {
+      font-size: 31px;
+      color: var(--gold);
+    }
+
+    .summary-number {
+      font-size: 25px;
+      font-weight: bold;
+    }
+
+    .summary-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .review-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .review-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+    }
+
+    .review-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .nickname { font-weight: bold; font-size: 14px; }
+    .date { color: var(--muted); font-size: 11px; }
+    .stars { color: var(--gold); letter-spacing: 2px; }
+
+    .review-content {
+      margin: 15px 0;
+      font-size: 14px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .owner-reply {
+      border-left: 3px solid var(--green);
+      background: #f6f6f1;
+      padding: 12px 15px;
+      margin-top: 16px;
+      font-size: 13px;
+    }
+
+    .owner-label {
+      color: var(--green);
+      font-size: 11px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .write-panel {
+      margin-top: 35px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 25px;
+    }
+
+    .write-panel h3 { margin: 0 0 5px; font-size: 19px; }
+    .write-panel > p { color: var(--muted); font-size: 12px; margin-top: 0; }
+
+    label {
+      display: block;
+      margin: 17px 0 6px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid #dedfd7;
+      border-radius: 5px;
+      padding: 12px;
+      background: #fff;
+      color: var(--text);
+      outline-color: var(--green-light);
+    }
+
+    textarea { resize: vertical; min-height: 115px; }
+    .rating-input { display: flex; gap: 5px; }
+
+    .rating-input button {
+      border: 0;
+      background: none;
+      padding: 0 2px;
+      font-size: 30px;
+      color: #d8d7d0;
+    }
+
+    .rating-input button.active { color: var(--gold); }
+
+    .submit-button {
+      margin-top: 18px;
+      background: var(--green);
+      color: white;
+      width: 100%;
+      padding: 13px;
+      border: 0;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+
+    .notice {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 5px;
+      background: #f5e9d2;
+      color: #694b1c;
+      font-size: 12px;
+    }
+
+    footer {
+      background: var(--green);
+      color: #dbe1da;
+      text-align: center;
+      padding: 27px 15px;
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 17px 5%; }
+      nav { gap: 12px; }
+      nav a { font-size: 11px; }
+      .hero { padding: 45px 6%; }
+      .hero-inner { grid-template-columns: 1fr; }
+      .hero-art { min-height: 150px; }
+      .eight-ball { width: 70px; height: 70px; }
+      .eight-ball span { width: 30px; height: 30px; font-size: 17px; }
+      main { padding: 40px 15px 55px; }
+      .section-heading h2 { font-size: 23px; }
+      .review-card, .write-panel { padding: 17px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <div class="logo">
+        BILLIARDS CLUB
+        <small>이름 없는 당구장</small>
+      </div>
+      <nav>
+        <a href="#about">당구장 소개</a>
+        <a href="#reviews">방문 리뷰</a>
+        <a href="#write">리뷰 작성</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero" id="about">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">WELCOME TO BILLIARDS CLUB</div>
+        <h1>사장님이 미쳤어요<br>마포에서 제일 물 좋은 곳</h1>
+        <p>
+          안녕하세요, 이름 없는 당구장입니다.<br>
+          돈 넉넉하게 챙겨와서 편하게 놀다 가세요.
+        </p>
+        <a class="button" href="#reviews">방문 리뷰 보기 ↗</a>
+      </div>
+      <div class="hero-art" aria-label="당구공 일러스트">
+        <div class="eight-ball"><span>8</span></div>
+        <p>TAKE YOUR SHOT</p>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <section id="reviews">
+      <div class="section-heading">
+        <div>
+          <h2>방문자 리뷰</h2>
+          <p>여러분의 소중한 방문 후기를 남겨 주세요.</p>
+        </div>
+      </div>
+
+      <div class="review-summary">
+        <div class="summary-star">★</div>
+        <div>
+          <div class="summary-number" id="average">5.0</div>
+          <div class="summary-label">
+            평균 별점 · 리뷰 <span id="count">2</span>개
+          </div>
+        </div>
+      </div>
+
+      <div class="review-list" id="reviewList"></div>
+    </section>
+
+    <section class="write-panel" id="write">
+      <h3>리뷰 작성하기</h3>
+      <p>방문 경험을 자유롭게 들려주세요.</p>
+
+      <form id="reviewForm">
+        <label for="nickname">닉네임</label>
+        <input id="nickname" maxlength="30" required
+          placeholder="닉네임을 입력해 주세요.">
+
+        <label>별점</label>
+        <div class="rating-input" id="ratingInput">
+          <button type="button" data-rating="1" aria-label="1점">★</button>
+          <button type="button" data-rating="2" aria-label="2점">★</button>
+          <button type="button" data-rating="3" aria-label="3점">★</button>
+          <button type="button" data-rating="4" aria-label="4점">★</button>
+          <button type="button" data-rating="5" aria-label="5점" class="active">★</button>
+        </div>
+
+        <label for="content">리뷰 내용</label>
+        <textarea id="content" minlength="10" maxlength="500" required
+          placeholder="10자 이상 500자 이하로 작성해 주세요."></textarea>
+
+        <button class="submit-button" type="submit">리뷰 등록하기</button>
+        <div class="notice" id="notice" role="status"></div>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    8 BALL BILLIARDS CLUB · YOUR GAME, YOUR MOMENT
+  </footer>
+
+  <script>
+    // 임시 미리보기 데이터입니다.
+    // 다음 단계에서 Supabase에 연결해 실제 리뷰를 저장할 예정입니다.
+    const sampleReviews = [
+      {
+        nickname: "사장님 평생 당구장 해주세요",
+        rating: 5,
+        content: "사장 얼굴이 개연성이고 서사고 복지입니다. 당구 못 쳐도 되니까 다들 가세요. 제발 가세요.",
+        date: "2026.9.21",
+        reply: "ㅋㅋ 복지든 뭐든 실컷 즐기다 가라."
+      },
+      {
+        nickname: "양아치 소굴",
+        rating: 2,
+        content: "동네 양아치들 소굴 같음. 무서워서 다시는 못 갈 듯.",
+        date: "2026.9.30",
+        reply: ""
+      },
+       {
+        nickname: "양아치소굴아 그 맛에 가는거다",
+        rating: 5,
+        content: "여기 사장님이랑 엮이면 인생 조진다는 소문 있던데... 얼굴 보니까 왜 그런지 알겠음. 조져져도 되니까 엮이고 싶다.",
+        date: "2026.10.2",
+        reply: "다음에 올 때 리뷰 보여주면 서비스 줌. 뭔지는 다음에 확인."
+      }, 
+      {
+        nickname: "사장이 입걸레임",
+        rating: 2,
+        content: "사장인지 뭔지 하는 은발 머리, 손님한테 대놓고 몸매 죽인다 이딴 소리나 하고. 성희롱으로 신고하기 전에 그 입 닥치시길. 시설은 좋아서 별 2개.",
+        date: "2026.10.8",
+        reply: ""
+      },
+       {
+        nickname: "호성이♥",
+        rating: 3,
+        content: "알바생들 와꾸 보고 뽑는 듯. 눈 호강 제대로 하고 갑니다. 특히 지호성 군... 사랑합니다...",
+        date: "2026.10.12",
+        reply: ""
+      },
+       {
+        nickname: "이성언씨발새끼야",
+        rating: 1,
+      content: "니 내 애마에서 과자 먹었냐? 씨발아 청소비 주고 가라고!!!!!!!!!! 니 시계 팔아버리기 전에!!!!!!!!!!!!!!!",
+        date: "2026.10.13",
+        reply: "개새끼가 여기서도 짖네. 공주랑 청소 데이트나 해~"
+      }
+    ];
+
+    let reviews = [...sampleReviews];
+    let selectedRating = 5;
+
+    const reviewList = document.getElementById("reviewList");
+    const notice = document.getElementById("notice");
+
+    function renderReviews() {
+      reviewList.replaceChildren();
+
+      reviews.forEach(review => {
+        const card = document.createElement("article");
+        card.className = "review-card";
+
+        const top = document.createElement("div");
+        top.className = "review-top";
+
+        const person = document.createElement("div");
+        const nickname = document.createElement("div");
+        nickname.className = "nickname";
+        nickname.textContent = review.nickname;
+
+        const date = document.createElement("div");
+        date.className = "date";
+        date.textContent = review.date;
+
+        person.append(nickname, date);
+
+        const stars = document.createElement("div");
+        stars.className = "stars";
+        stars.textContent = "★".repeat(review.rating) +
+          "☆".repeat(5 - review.rating);
+
+        top.append(person, stars);
+
+        const content = document.createElement("p");
+        content.className = "review-content";
+        content.textContent = review.content;
+
+        card.append(top, content);
+
+        if (review.reply) {
+          const reply = document.createElement("div");
+          reply.className = "owner-reply";
+
+          const label = document.createElement("div");
+          label.className = "owner-label";
+          label.textContent = "↳ 사장님 답글";
+
+          const replyText = document.createElement("div");
+          replyText.textContent = review.reply;
+
+          reply.append(label, replyText);
+          card.append(reply);
+        }
+
+        reviewList.append(card);
+      });
+
+      const average = reviews.length
+        ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+        : 0;
+
+      document.getElementById("average").textContent = average.toFixed(1);
+      document.getElementById("count").textContent = reviews.length;
+    }
+
+    document.querySelectorAll("#ratingInput button").forEach(button => {
+      button.addEventListener("click", () => {
+        selectedRating = Number(button.dataset.rating);
+
+        document.querySelectorAll("#ratingInput button").forEach(star => {
+          star.classList.toggle(
+            "active",
+            Number(star.dataset.rating) <= selectedRating
+          );
+        });
+      });
+    });
+
+    document.getElementById("reviewForm").addEventListener("submit", event => {
+      event.preventDefault();
+
+      const nickname = document.getElementById("nickname").value.trim();
+      const content = document.getElementById("content").value.trim();
+
+      if (nickname.length < 1 || content.length < 10) {
+        notice.style.display = "block";
+        notice.textContent = "닉네임과 10자 이상의 리뷰 내용을 확인해 주세요.";
+        return;
+      }
+
+      reviews.unshift({
+        nickname,
+        rating: selectedRating,
+        content,
+        date: new Date().toLocaleDateString("ko-KR"),
+        reply: ""
+      });
+
+      renderReviews();
+      event.target.reset();
+
+      selectedRating = 5;
+      document.querySelectorAll("#ratingInput button").forEach(star => {
+        star.classList.toggle(
+          "active",
+          Number(star.dataset.rating) <= 5
+        );
+      });
+
+      notice.style.display = "block";
+      notice.textContent =
+        "미리보기 리뷰가 추가됐어요. 현재는 이 화면에서만 임시로 표시됩니다.";
+
+      document.getElementById("reviews").scrollIntoView({
+        behavior: "smooth"
+      });
+    });
+
+    renderReviews();
+  </script>
+</body>
+</html>
