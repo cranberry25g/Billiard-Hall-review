@@ -381,6 +381,17 @@
         </div>
       </div>
 
+      
+      <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:18px 0 12px;">
+        <label for="reviewSort" style="font-size:14px;color:#666;">정렬</label>
+        <select id="reviewSort" onchange="changeReviewSort(this.value)"
+          style="padding:9px 12px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#333;font-size:14px;cursor:pointer;">
+          <option value="newest">최신순</option>
+          <option value="oldest">오래된순</option>
+          <option value="popular">인기순</option>
+        </select>
+      </div>
+
       <div class="review-summary">
         <div class="summary-star">★</div>
         <div>
@@ -590,7 +601,36 @@ function renderReviews(reviews, comments = [], likes = []) {
     const startIndex =
       (currentReviewPage - 1) * REVIEWS_PER_PAGE;
 
-    const pageReviews = reviews.slice(
+
+    // 선택한 기준에 따라 리뷰 정렬
+    const sortedReviews = [...reviews].sort((a, b) => {
+      const dateA = new Date(a.created_at || 0).getTime();
+      const dateB = new Date(b.created_at || 0).getTime();
+
+      if (currentReviewSort === "oldest") {
+        return dateA - dateB;
+      }
+
+      if (currentReviewSort === "popular") {
+        const likesA = likes.filter(
+          (like) => String(like.review_id) === String(a.id)
+        ).length;
+
+        const likesB = likes.filter(
+          (like) => String(like.review_id) === String(b.id)
+        ).length;
+
+        if (likesA !== likesB) {
+          return likesB - likesA;
+        }
+
+        return dateB - dateA;
+      }
+
+      return dateB - dateA;
+    });
+
+    const pageReviews = sortedReviews.slice(
       startIndex,
       startIndex + REVIEWS_PER_PAGE
     );
@@ -931,7 +971,22 @@ function changeReviewPage(page) {
     block: "start"
   });
 }
+
   
+let currentReviewSort = "newest";
+
+// 리뷰 정렬 변경
+function changeReviewSort(sort) {
+  currentReviewSort = sort;
+  currentReviewPage = 1;
+
+  renderReviews(
+    cachedReviews,
+    cachedComments,
+    cachedLikes
+  );
+}
+
  // Supabase에서 리뷰와 방문자 댓글 불러오기
 async function loadReviews() {
   if (notice) notice.textContent = "";
