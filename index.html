@@ -627,7 +627,14 @@ function renderReviews(reviews, comments = []) {
           </div>
         `
         : "";
-
+      <CodeBlock language="javascript" editable>
+      
+      // 방문자 댓글 작성창: 로그인하지 않아도 표시
+      const commentFormHtml = `
+        DIL0
+      `;
+</CodeBlock>
+    
       return `
         <article class="review-card">
           <div class="review-top">
@@ -638,6 +645,7 @@ function renderReviews(reviews, comments = []) {
           <p class="review-content">${escapeHtml(review.content)}</p>
           ${replyHtml}
           ${commentsHtml}
+          ${commentFormHtml}
         </article>
       `;
     }).join("");
