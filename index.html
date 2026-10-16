@@ -1221,10 +1221,13 @@ async function saveReviewCommentFromButton(reviewId) {
       await loadReviews();
       alert("댓글이 삭제되었어요!");
   
-    } catch (error) {
-      console.error("댓글 삭제 중 오류:", error);
-      alert("댓글 삭제 중 문제가 발생했어요.");
-    }
+} catch (error) {
+  console.error("댓글 삭제 중 오류:", error);
+  alert(
+    "댓글 삭제 중 문제가 발생했어요.\n" +
+    (error?.message || String(error))
+  );
+}
   }
 
 // 새 리뷰 등록
