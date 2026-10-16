@@ -1475,14 +1475,14 @@ async function deleteReviewFromButton(reviewId) {
     const { data: { user }, error: userError } =
       await supabaseClient.auth.getUser();
 
-    if (
-      userError ||
-      !user ||
-      user.id !== ADMIN_USER_ID
-    ) {
-      alert("관리자 계정으로 로그인해 주세요.");
-      return;
-    }
+if (
+  userError ||
+  !user ||
+  !ADMIN_USER_IDS.includes(user.id)
+) {
+  alert("관리자 계정으로 로그인해 주세요.");
+  return;
+}
 
     const { error } = await supabaseClient.rpc(
       "admin_delete_review",
