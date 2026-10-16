@@ -543,7 +543,23 @@ ratingButtons.forEach((button, index) => {
 
 
  // 리뷰 목록 화면에 표시
-function renderReviews(reviews, comments = []) {
+function renderReviews(reviews, comments = [], likes = []) {
+  
+  // 방문자 식별자 가져오기
+function getVisitorId() {
+  let visitorId = localStorage.getItem("fan_visitor_id");
+
+  if (!visitorId) {
+    visitorId = window.crypto?.randomUUID
+      ? window.crypto.randomUUID()
+      : "visitor-" + Date.now() + "-" +
+        Math.random().toString(36).slice(2);
+
+    localStorage.setItem("fan_visitor_id", visitorId);
+  }
+
+  return visitorId;
+}
   if (!reviewList) return;
 
   if (reviews.length === 0) {
@@ -556,6 +572,17 @@ function renderReviews(reviews, comments = []) {
         : "";
 
       const reviewId = String(review.id);
+      const visitorId = getVisitorId();
+
+const reviewLikes = likes.filter(
+  (like) => String(like.review_id) === reviewId
+);
+
+const likeCount = reviewLikes.length;
+
+const isLiked = reviewLikes.some(
+  (like) => like.visitor_id === visitorId
+);
 
       // 해당 리뷰에 달린 방문자 댓글만 가져오기
       const reviewComments = comments.filter(
@@ -677,6 +704,16 @@ function renderReviews(reviews, comments = []) {
             <span class="date">${escapeHtml(date)}</span>
           </div>
           <div class="stars">${"★".repeat(Number(review.rating))}${"☆".repeat(5 - Number(review.rating))}</div>
+          <div style="margin:10px 0;">
+  <button
+    type="button"
+    onclick="toggleReviewLike('${escapeHtml(reviewId)}')"
+    aria-pressed="${isLiked}"
+    style="padding:7px 12px;border:1px solid #eee;border-radius:20px;background:${isLiked ? '#fff0f2' : '#fff'};cursor:pointer;color:${isLiked ? '#e34b68' : '#555'};"
+  >
+    ${isLiked ? "❤️" : "🤍"} 좋아요 ${likeCount}
+  </button>
+</div>
           
 ${
   window.isAdminLoggedIn
@@ -751,7 +788,62 @@ async function saveReviewReplyFromButton(reviewId) {
   await saveReviewReply(reviewId, replyInput.value);
 }
 
+  // 리뷰 좋아요 등록 및 취소
+async function toggleReviewLike(reviewId) {
+  const visitorId = getVisitorId();
 
+  const buttons = document.querySelectorAll(
+    `.review-card button[onclick="toggleReviewLike('${reviewId}')"]`
+  );
+
+  buttons.forEach((button) => {
+    button.disabled = true;
+  });
+
+  try {
+    const { data: existingLike, error: findError } =
+      await supabaseClient
+        .from("review_likes")
+        .select("id")
+        .eq("review_id", String(reviewId))
+        .eq("visitor_id", visitorId)
+        .maybeSingle();
+
+    if (findError) throw findError;
+
+    let error;
+
+    if (existingLike) {
+      const result = await supabaseClient
+        .from("review_likes")
+        .delete()
+        .eq("id", existingLike.id);
+
+      error = result.error;
+    } else {
+      const result = await supabaseClient
+        .from("review_likes")
+        .insert([{
+          review_id: String(reviewId),
+          visitor_id: visitorId
+        }]);
+
+      error = result.error;
+    }
+
+    if (error) throw error;
+
+    await loadReviews();
+
+  } catch (error) {
+    console.error("좋아요 처리 오류:", error);
+    alert("좋아요 처리에 실패했어요. 잠시 후 다시 시도해 주세요.");
+
+    buttons.forEach((button) => {
+      button.disabled = false;
+    });
+  }
+}
 
  // Supabase에서 리뷰와 방문자 댓글 불러오기
 async function loadReviews() {
@@ -790,7 +882,19 @@ async function loadReviews() {
     return;
   }
 
-  renderReviews(data || [], comments || []);
+  const { data: likes, error: likeError } = await supabaseClient
+    .from("review_likes")
+    .select("review_id, visitor_id");
+
+  if (likeError) {
+    console.error("좋아요 불러오기 오류:", likeError);
+    if (notice) {
+      notice.textContent = "좋아요를 불러오지 못했어요.";
+    }
+    return;
+  }
+
+  renderReviews(data || [], comments || [], likes || []);
 }
 
   
