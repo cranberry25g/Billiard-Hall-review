@@ -790,6 +790,7 @@ async function saveReviewReplyFromButton(reviewId) {
 
   // 리뷰 좋아요 등록 및 취소
 async function toggleReviewLike(reviewId) {
+  alert("좋아요 함수가 실행됐어!");
   const visitorId = getVisitorId();
 
   const buttons = document.querySelectorAll(
