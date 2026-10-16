@@ -426,173 +426,157 @@
   </footer>
 
   <script>
-    // 임시 미리보기 데이터입니다.
-    // 다음 단계에서 Supabase에 연결해 실제 리뷰를 저장할 예정입니다.
-    const sampleReviews = [
-      {
-        nickname: "사장님 평생 당구장 해주세요",
-        rating: 5,
-        content: "사장 얼굴이 개연성이고 서사고 복지입니다. 당구 못 쳐도 되니까 다들 가세요. 제발 가세요.",
-        date: "2026.9.21",
-        reply: "ㅋㅋ 복지든 뭐든 실컷 즐기다 가라."
-      },
-      {
-        nickname: "양아치 소굴",
-        rating: 2,
-        content: "동네 양아치들 소굴 같음. 무서워서 다시는 못 갈 듯.",
-        date: "2026.9.30",
-        reply: ""
-      },
-       {
-        nickname: "양아치소굴아 그 맛에 가는거다",
-        rating: 5,
-        content: "여기 사장님이랑 엮이면 인생 조진다는 소문 있던데... 얼굴 보니까 왜 그런지 알겠음. 조져져도 되니까 엮이고 싶다.",
-        date: "2026.10.2",
-        reply: "다음에 올 때 리뷰 보여주면 서비스 줌. 뭔지는 다음에 확인."
-      }, 
-      {
-        nickname: "사장이 입걸레임",
-        rating: 2,
-        content: "사장인지 뭔지 하는 은발 머리, 손님한테 대놓고 몸매 죽인다 이딴 소리나 하고. 성희롱으로 신고하기 전에 그 입 닥치시길. 시설은 좋아서 별 2개.",
-        date: "2026.10.8",
-        reply: ""
-      },
-       {
-        nickname: "호성이♥",
-        rating: 3,
-        content: "알바생들 와꾸 보고 뽑는 듯. 눈 호강 제대로 하고 갑니다. 특히 지호성 군... 사랑합니다...",
-        date: "2026.10.12",
-        reply: ""
-      },
-       {
-        nickname: "이성언씨발새끼야",
-        rating: 1,
-      content: "니 내 애마에서 과자 먹었냐? 씨발아 청소비 주고 가라고!!!!!!!!!! 니 시계 팔아버리기 전에!!!!!!!!!!!!!!!",
-        date: "2026.10.13",
-        reply: "개새끼가 여기서도 짖네. 공주랑 청소 데이트나 해~"
-      }
-    ];
+  
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // Supabase 대시보드에서 확인한 값으로 바꿔 주세요.
+  const SUPABASE_URL = "https://dirmkijleuwsambgfgif.supabase.co/rest/v1/";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_u6aMukuYlyw1xvinYtiAHA_h2002Ik3";
 
-    let reviews = [...sampleReviews];
-    let selectedRating = 5;
+  const db = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
 
-    const reviewList = document.getElementById("reviewList");
-    const notice = document.getElementById("notice");
+  let selectedRating = 5;
 
-    function renderReviews() {
-      reviewList.replaceChildren();
+  const reviewList = document.getElementById("reviewList");
+  const notice = document.getElementById("notice");
 
-      reviews.forEach(review => {
-        const card = document.createElement("article");
-        card.className = "review-card";
+  function showNotice(message) {
+    notice.style.display = "block";
+    notice.textContent = message;
+  }
 
-        const top = document.createElement("div");
-        top.className = "review-top";
+  function renderReviews(reviews) {
+    reviewList.replaceChildren();
 
-        const person = document.createElement("div");
-        const nickname = document.createElement("div");
-        nickname.className = "nickname";
-        nickname.textContent = review.nickname;
+    reviews.forEach(review => {
+      const card = document.createElement("article");
+      card.className = "review-card";
 
-        const date = document.createElement("div");
-        date.className = "date";
-        date.textContent = review.date;
+      const top = document.createElement("div");
+      top.className = "review-top";
 
-        person.append(nickname, date);
+      const person = document.createElement("div");
 
-        const stars = document.createElement("div");
-        stars.className = "stars";
-        stars.textContent = "★".repeat(review.rating) +
-          "☆".repeat(5 - review.rating);
+      const nickname = document.createElement("div");
+      nickname.className = "nickname";
+      nickname.textContent = review.nickname;
 
-        top.append(person, stars);
+      const date = document.createElement("div");
+      date.className = "date";
+      date.textContent = new Date(review.created_at).toLocaleDateString("ko-KR");
 
-        const content = document.createElement("p");
-        content.className = "review-content";
-        content.textContent = review.content;
+      person.append(nickname, date);
 
-        card.append(top, content);
+      const stars = document.createElement("div");
+      stars.className = "stars";
+      stars.textContent =
+        "★".repeat(review.rating) + "☆".repeat(5 - review.rating);
 
-        if (review.reply) {
-          const reply = document.createElement("div");
-          reply.className = "owner-reply";
+      top.append(person, stars);
 
-          const label = document.createElement("div");
-          label.className = "owner-label";
-          label.textContent = "↳ 사장님 답글";
+      const content = document.createElement("p");
+      content.className = "review-content";
+      content.textContent = review.content;
 
-          const replyText = document.createElement("div");
-          replyText.textContent = review.reply;
-
-          reply.append(label, replyText);
-          card.append(reply);
-        }
-
-        reviewList.append(card);
-      });
-
-      const average = reviews.length
-        ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
-        : 0;
-
-      document.getElementById("average").textContent = average.toFixed(1);
-      document.getElementById("count").textContent = reviews.length;
-    }
-
-    document.querySelectorAll("#ratingInput button").forEach(button => {
-      button.addEventListener("click", () => {
-        selectedRating = Number(button.dataset.rating);
-
-        document.querySelectorAll("#ratingInput button").forEach(star => {
-          star.classList.toggle(
-            "active",
-            Number(star.dataset.rating) <= selectedRating
-          );
-        });
-      });
+      card.append(top, content);
+      reviewList.append(card);
     });
 
-    document.getElementById("reviewForm").addEventListener("submit", event => {
-      event.preventDefault();
+    const average = reviews.length
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+      : 0;
 
-      const nickname = document.getElementById("nickname").value.trim();
-      const content = document.getElementById("content").value.trim();
+    document.getElementById("average").textContent = average.toFixed(1);
+    document.getElementById("count").textContent = reviews.length;
+  }
 
-      if (nickname.length < 1 || content.length < 10) {
-        notice.style.display = "block";
-        notice.textContent = "닉네임과 10자 이상의 리뷰 내용을 확인해 주세요.";
-        return;
-      }
+  async function loadReviews() {
+    const { data, error } = await db
+      .from("reviews")
+      .select("id, nickname, rating, content, created_at")
+      .order("created_at", { ascending: false });
 
-      reviews.unshift({
-        nickname,
-        rating: selectedRating,
-        content,
-        date: new Date().toLocaleDateString("ko-KR"),
-        reply: ""
-      });
+    if (error) {
+      console.error("리뷰 조회 오류:", error);
+      showNotice("리뷰를 불러오지 못했어요. 연결 설정을 확인해 주세요.");
+      return;
+    }
 
-      renderReviews();
-      event.target.reset();
+    renderReviews(data);
+  }
 
-      selectedRating = 5;
+  document.querySelectorAll("#ratingInput button").forEach(button => {
+    button.addEventListener("click", () => {
+      selectedRating = Number(button.dataset.rating);
+
       document.querySelectorAll("#ratingInput button").forEach(star => {
         star.classList.toggle(
           "active",
-          Number(star.dataset.rating) <= 5
+          Number(star.dataset.rating) <= selectedRating
         );
       });
+    });
+  });
 
-      notice.style.display = "block";
-      notice.textContent =
-        "미리보기 리뷰가 추가됐어요. 현재는 이 화면에서만 임시로 표시됩니다.";
+  document.getElementById("reviewForm").addEventListener("submit", async event => {
+    event.preventDefault();
 
-      document.getElementById("reviews").scrollIntoView({
-        behavior: "smooth"
-      });
+    const nickname = document.getElementById("nickname").value.trim();
+    const content = document.getElementById("content").value.trim();
+
+    if (nickname.length < 1 || nickname.length > 30) {
+      showNotice("닉네임은 1~30자로 입력해 주세요.");
+      return;
+    }
+
+    if (content.length < 10 || content.length > 500) {
+      showNotice("리뷰는 10~500자로 작성해 주세요.");
+      return;
+    }
+
+    const submitButton = event.currentTarget.querySelector(
+      'button[type="submit"]'
+    );
+
+    submitButton.disabled = true;
+    submitButton.textContent = "등록 중...";
+
+    const { error } = await db.from("reviews").insert({
+      nickname,
+      rating: selectedRating,
+      content
     });
 
-    renderReviews();
-  </script>
+    submitButton.disabled = false;
+    submitButton.textContent = "리뷰 등록하기";
+
+    if (error) {
+      console.error("리뷰 등록 오류:", error);
+      showNotice("리뷰 등록에 실패했어요. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
+
+    event.currentTarget.reset();
+    selectedRating = 5;
+
+    document.querySelectorAll("#ratingInput button").forEach(star => {
+      star.classList.toggle("active", Number(star.dataset.rating) <= 5);
+    });
+
+    showNotice("리뷰가 등록됐어요. 감사합니다!");
+
+    await loadReviews();
+
+    document.getElementById("reviews").scrollIntoView({
+      behavior: "smooth"
+    });
+  });
+
+  loadReviews();
+</script>
+
 </body>
 </html>
