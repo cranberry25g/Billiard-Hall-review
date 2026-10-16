@@ -594,6 +594,31 @@ function renderReviews(reviews) {
   }
 }
 
+/* 관리자 답글 저장 기능 */
+async function saveReviewReply(reviewId, replyText) {
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+  const user = sessionData.session?.user;
+
+  if (!user || user.id !== ADMIN_USER_ID) {
+    alert("관리자 로그인 후 이용해 주세요.");
+    return false;
+  }
+
+  const { error } = await supabaseClient.rpc("set_review_reply", {
+    p_review_id: String(reviewId),
+    p_reply: replyText
+  });
+
+  if (error) {
+    alert("답글 저장에 실패했어요: " + error.message);
+    return false;
+  }
+
+  alert("답글이 저장되었어요!");
+  await loadReviews();
+  return true;
+}
+
 // Supabase에서 리뷰 불러오기
 async function loadReviews() {
   if (notice) notice.textContent = "";
