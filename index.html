@@ -827,6 +827,7 @@ adminLoginForm.addEventListener("submit", async (event) => {
   adminPasswordInput.value = "";
   adminNotice.textContent = "로그인 성공!";
   updateAdminUI(data.user);
+    await loadReviews();
   adminLoginButton.disabled = false;
 });
 
