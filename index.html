@@ -429,153 +429,212 @@
   
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // Supabase 대시보드에서 확인한 값으로 바꿔 주세요.
-  const SUPABASE_URL = "https://dirmkijleuwsambgfgif.supabase.co/rest/v1/";
-  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_u6aMukuYlyw1xvinYtiAHA_h2002Ik3";
+ 
+const SUPABASE_URL = "https://dirmkijleuwsambgfgif.supabase.co/rest/v1/";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_u6aMukuYlyw1xvinYtiAHA_h2002Ik3";
 
-  const db = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
-  );
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
 
-  let selectedRating = 5;
+const reviewList = document.querySelector("#reviewList");
+const notice = document.querySelector("#notice");
+const reviewForm = document.querySelector("#reviewForm");
+const nicknameInput = document.querySelector("#nickname");
+const contentInput = document.querySelector("#content");
+const ratingButtons = document.querySelectorAll("#ratingInput button");
+const averageElement = document.querySelector("#average");
+const countElement = document.querySelector("#count");
 
-  const reviewList = document.getElementById("reviewList");
-  const notice = document.getElementById("notice");
+let selectedRating = 5;
 
-  function showNotice(message) {
-    notice.style.display = "block";
-    notice.textContent = message;
-  }
+// HTML에 입력되는 내용을 안전하게 표시
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
 
-  function renderReviews(reviews) {
-    reviewList.replaceChildren();
+// 별점 버튼
+ratingButtons.forEach((button, index) => {
+  button.addEventListener("click", () => {
+    const rating = Number(
+      button.dataset.rating || index + 1
+    );
 
-    reviews.forEach(review => {
-      const card = document.createElement("article");
-      card.className = "review-card";
+    selectedRating = rating;
 
-      const top = document.createElement("div");
-      top.className = "review-top";
+    ratingButtons.forEach((item, itemIndex) => {
+      const itemRating = Number(
+        item.dataset.rating || itemIndex + 1
+      );
 
-      const person = document.createElement("div");
+      item.classList.toggle(
+        "active",
+        itemRating <= selectedRating
+      );
 
-      const nickname = document.createElement("div");
-      nickname.className = "nickname";
-      nickname.textContent = review.nickname;
-
-      const date = document.createElement("div");
-      date.className = "date";
-      date.textContent = new Date(review.created_at).toLocaleDateString("ko-KR");
-
-      person.append(nickname, date);
-
-      const stars = document.createElement("div");
-      stars.className = "stars";
-      stars.textContent =
-        "★".repeat(review.rating) + "☆".repeat(5 - review.rating);
-
-      top.append(person, stars);
-
-      const content = document.createElement("p");
-      content.className = "review-content";
-      content.textContent = review.content;
-
-      card.append(top, content);
-      reviewList.append(card);
-    });
-
-    const average = reviews.length
-      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
-      : 0;
-
-    document.getElementById("average").textContent = average.toFixed(1);
-    document.getElementById("count").textContent = reviews.length;
-  }
-
-  async function loadReviews() {
-    const { data, error } = await db
-      .from("reviews")
-      .select("id, nickname, rating, content, created_at")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("리뷰 조회 오류:", error);
-      showNotice("리뷰를 불러오지 못했어요. 연결 설정을 확인해 주세요.");
-      return;
-    }
-
-    renderReviews(data);
-  }
-
-  document.querySelectorAll("#ratingInput button").forEach(button => {
-    button.addEventListener("click", () => {
-      selectedRating = Number(button.dataset.rating);
-
-      document.querySelectorAll("#ratingInput button").forEach(star => {
-        star.classList.toggle(
-          "active",
-          Number(star.dataset.rating) <= selectedRating
-        );
-      });
+      item.setAttribute(
+        "aria-pressed",
+        String(itemRating === selectedRating)
+      );
     });
   });
+});
 
-  document.getElementById("reviewForm").addEventListener("submit", async event => {
+// 리뷰 목록 화면에 표시
+function renderReviews(reviews) {
+  if (!reviewList) return;
+
+  if (reviews.length === 0) {
+    reviewList.innerHTML =
+      '<p class="empty-reviews">아직 등록된 리뷰가 없습니다.</p>';
+  } else {
+    reviewList.innerHTML = reviews.map((review) => {
+      const date = review.created_at
+        ? new Date(review.created_at).toLocaleDateString("ko-KR")
+        : "";
+
+      const replyHtml = review.reply
+        ? `
+          <div class="owner-reply"
+            style="margin-top:14px;padding:12px 14px;background:#f4f0e6;border-radius:8px;">
+            <strong style="display:block;margin-bottom:6px;">
+              사장님 답글
+            </strong>
+            <p style="margin:0;white-space:pre-wrap;">${escapeHtml(review.reply)}</p>
+          </div>
+        `
+        : "";
+
+      return `
+        <article class="review-card">
+          <div class="review-top">
+            <span class="nickname">${escapeHtml(review.nickname)}</span>
+            <span class="date">${escapeHtml(date)}</span>
+          </div>
+          <div class="stars">${"★".repeat(Number(review.rating))}${"☆".repeat(5 - Number(review.rating))}</div>
+          <p class="review-content">${escapeHtml(review.content)}</p>
+          ${replyHtml}
+        </article>
+      `;
+    }).join("");
+  }
+
+  if (countElement) {
+    countElement.textContent = reviews.length;
+  }
+
+  if (averageElement) {
+    const average = reviews.length
+      ? reviews.reduce((sum, review) => sum + Number(review.rating), 0)
+          / reviews.length
+      : 0;
+
+    averageElement.textContent = average.toFixed(1);
+  }
+}
+
+// Supabase에서 리뷰 불러오기
+async function loadReviews() {
+  if (notice) notice.textContent = "";
+
+  const { data, error } = await supabaseClient
+    .from("reviews")
+    .select("id, nickname, rating, content, created_at, reply")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("리뷰 불러오기 오류:", error);
+
+    if (notice) {
+      notice.textContent =
+        "리뷰를 불러오지 못했어요. Supabase 설정을 확인해 주세요.";
+    }
+
+    return;
+  }
+
+  renderReviews(data || []);
+}
+
+// 새 리뷰 등록
+if (reviewForm) {
+  reviewForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const nickname = document.getElementById("nickname").value.trim();
-    const content = document.getElementById("content").value.trim();
+    const nickname = nicknameInput.value.trim();
+    const content = contentInput.value.trim();
+    const submitButton = reviewForm.querySelector(
+      'button[type="submit"]'
+    );
 
     if (nickname.length < 1 || nickname.length > 30) {
-      showNotice("닉네임은 1~30자로 입력해 주세요.");
+      if (notice) notice.textContent =
+        "닉네임은 1~30자로 입력해 주세요.";
       return;
     }
 
     if (content.length < 10 || content.length > 500) {
-      showNotice("리뷰는 10~500자로 작성해 주세요.");
+      if (notice) notice.textContent =
+        "리뷰는 10~500자로 입력해 주세요.";
       return;
     }
 
-    const submitButton = event.currentTarget.querySelector(
-      'button[type="submit"]'
-    );
+    if (submitButton) submitButton.disabled = true;
+    if (notice) notice.textContent = "리뷰를 등록하고 있어요...";
 
-    submitButton.disabled = true;
-    submitButton.textContent = "등록 중...";
-
-    const { error } = await db.from("reviews").insert({
-      nickname,
-      rating: selectedRating,
-      content
-    });
-
-    submitButton.disabled = false;
-    submitButton.textContent = "리뷰 등록하기";
+    const { error } = await supabaseClient
+      .from("reviews")
+      .insert([{
+        nickname,
+        rating: selectedRating,
+        content
+      }]);
 
     if (error) {
       console.error("리뷰 등록 오류:", error);
-      showNotice("리뷰 등록에 실패했어요. 잠시 후 다시 시도해 주세요.");
+
+      if (notice) {
+        notice.textContent =
+          "리뷰 등록에 실패했어요. Supabase 권한 설정을 확인해 주세요.";
+      }
+
+      if (submitButton) submitButton.disabled = false;
       return;
     }
 
-    event.currentTarget.reset();
+    reviewForm.reset();
     selectedRating = 5;
 
-    document.querySelectorAll("#ratingInput button").forEach(star => {
-      star.classList.toggle("active", Number(star.dataset.rating) <= 5);
-    });
+    ratingButtons.forEach((button, index) => {
+      const rating = Number(button.dataset.rating || index + 1);
 
-    showNotice("리뷰가 등록됐어요. 감사합니다!");
+      button.classList.toggle("active", rating <= 5);
+      button.setAttribute("aria-pressed", String(rating === 5));
+    });
 
     await loadReviews();
 
-    document.getElementById("reviews").scrollIntoView({
-      behavior: "smooth"
+    if (notice) notice.textContent = "리뷰가 등록되었어요!";
+
+    if (submitButton) submitButton.disabled = false;
+
+    document.querySelector("#reviews")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
     });
   });
+}
 
-  loadReviews();
+// 페이지를 열면 리뷰 목록 불러오기
+loadReviews();
+
 </script>
 
 </body>
