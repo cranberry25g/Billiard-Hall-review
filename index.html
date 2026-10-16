@@ -541,7 +541,22 @@ ratingButtons.forEach((button, index) => {
   });
 });
 
+// 방문자 식별자 가져오기
+function getVisitorId() {
+  let visitorId = localStorage.getItem("fan_visitor_id");
 
+  if (!visitorId) {
+    visitorId = window.crypto?.randomUUID
+      ? window.crypto.randomUUID()
+      : "visitor-" + Date.now() + "-" +
+        Math.random().toString(36).slice(2);
+
+    localStorage.setItem("fan_visitor_id", visitorId);
+  }
+
+  return visitorId;
+}
+  
  // 리뷰 목록 화면에 표시
 function renderReviews(reviews, comments = [], likes = []) {
   
