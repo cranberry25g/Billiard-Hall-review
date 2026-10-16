@@ -372,6 +372,49 @@
   </section>
 
   <main>
+    
+    <!-- 관리자 로그인 -->
+    <section id="adminPanel" style="max-width:700px;margin:0 auto 24px;padding:20px;border:1px solid #e5e0d5;border-radius:12px;background:#fff;">
+      <h3 style="margin-top:0;">관리자 페이지</h3>
+      <p id="adminStatus" style="color:#777;font-size:14px;">
+        관리자 로그인 후 리뷰 답글을 관리할 수 있습니다.
+      </p>
+
+      <form id="adminLoginForm">
+        <label for="adminEmail">관리자 이메일</label>
+        <input
+          id="adminEmail"
+          type="email"
+          autocomplete="username"
+          required
+          placeholder="관리자 이메일을 입력해 주세요."
+          style="width:100%;box-sizing:border-box;margin:8px 0 14px;padding:12px;border:1px solid #ddd;border-radius:8px;"
+        >
+
+        <label for="adminPassword">비밀번호</label>
+        <input
+          id="adminPassword"
+          type="password"
+          autocomplete="current-password"
+          required
+          placeholder="비밀번호를 입력해 주세요."
+          style="width:100%;box-sizing:border-box;margin:8px 0 14px;padding:12px;border:1px solid #ddd;border-radius:8px;"
+        >
+
+        <button type="submit" id="adminLoginButton"
+          style="padding:11px 18px;border:0;border-radius:8px;cursor:pointer;">
+          관리자 로그인
+        </button>
+
+        <button type="button" id="adminLogoutButton" hidden
+          style="padding:11px 18px;border:0;border-radius:8px;cursor:pointer;">
+          로그아웃
+        </button>
+
+        <p id="adminNotice" role="status" style="font-size:14px;"></p>
+      </form>
+    </section>
+
     <section id="reviews">
       <div class="section-heading">
         <div>
@@ -628,6 +671,89 @@ if (reviewForm) {
     });
   });
 }
+
+/* 관리자 로그인 기능 */
+const ADMIN_USER_ID = "7b24e4bc-c730-4a4a-85b5-760c05091f2c";
+
+const adminLoginForm = document.getElementById("adminLoginForm");
+const adminEmailInput = document.getElementById("adminEmail");
+const adminPasswordInput = document.getElementById("adminPassword");
+const adminLoginButton = document.getElementById("adminLoginButton");
+const adminLogoutButton = document.getElementById("adminLogoutButton");
+const adminStatus = document.getElementById("adminStatus");
+const adminNotice = document.getElementById("adminNotice");
+
+function updateAdminUI(user) {
+  const isAdmin = user?.id === ADMIN_USER_ID;
+
+  adminStatus.textContent = isAdmin
+    ? "관리자로 로그인되어 있습니다."
+    : user
+      ? "관리자 계정이 아닙니다. 관리자 계정으로 로그인해 주세요."
+      : "관리자 로그인 후 리뷰 답글을 관리할 수 있습니다.";
+
+  adminEmailInput.hidden = isAdmin;
+  adminPasswordInput.hidden = isAdmin;
+  adminLoginButton.hidden = isAdmin;
+  adminLogoutButton.hidden = !isAdmin;
+}
+
+adminLoginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  adminLoginButton.disabled = true;
+  adminNotice.textContent = "로그인 중입니다...";
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: adminEmailInput.value.trim(),
+    password: adminPasswordInput.value
+  });
+
+  if (error) {
+    adminNotice.textContent =
+      "로그인에 실패했어요. 이메일과 비밀번호를 확인해 주세요.";
+    adminLoginButton.disabled = false;
+    return;
+  }
+
+  if (data.user?.id !== ADMIN_USER_ID) {
+    await supabaseClient.auth.signOut();
+    updateAdminUI(null);
+    adminNotice.textContent = "관리자 계정으로만 로그인할 수 있어요.";
+    adminLoginButton.disabled = false;
+    return;
+  }
+
+  adminPasswordInput.value = "";
+  adminNotice.textContent = "로그인 성공!";
+  updateAdminUI(data.user);
+  adminLoginButton.disabled = false;
+});
+
+adminLogoutButton.addEventListener("click", async () => {
+  const { error } = await supabaseClient.auth.signOut();
+
+  if (error) {
+    adminNotice.textContent = "로그아웃에 실패했어요. 다시 시도해 주세요.";
+    return;
+  }
+
+  updateAdminUI(null);
+  adminNotice.textContent = "로그아웃했어요.";
+});
+
+supabaseClient.auth.onAuthStateChange((_event, session) => {
+  updateAdminUI(session?.user ?? null);
+});
+
+supabaseClient.auth.getSession().then(({ data, error }) => {
+  if (error) {
+    adminNotice.textContent = "로그인 상태를 확인하지 못했어요.";
+    return;
+  }
+
+  updateAdminUI(data.session?.user ?? null);
+});
 
 // 페이지를 열면 리뷰 목록 불러오기
 loadReviews();
