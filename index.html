@@ -637,6 +637,18 @@ async function saveReviewReply(reviewId, replyText) {
     return false;
   }
 
+/* 리뷰 카드의 답글 저장 버튼 */
+async function saveReviewReplyFromButton(reviewId) {
+  const replyInput = document.getElementById(`reply-${reviewId}`);
+
+  if (!replyInput) {
+    alert("답글 입력창을 찾을 수 없어요.");
+    return;
+  }
+
+  await saveReviewReply(reviewId, replyInput.value);
+}
+
   const { error } = await supabaseClient.rpc("set_review_reply", {
     p_review_id: String(reviewId),
     p_reply: replyText
@@ -772,6 +784,7 @@ const adminNotice = document.getElementById("adminNotice");
 
 function updateAdminUI(user) {
   const isAdmin = user?.id === ADMIN_USER_ID;
+  window.isAdminLoggedIn = isAdmin;
 
   adminStatus.textContent = isAdmin
     ? "관리자로 로그인되어 있습니다."
