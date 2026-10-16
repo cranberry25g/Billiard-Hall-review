@@ -554,17 +554,50 @@ function renderReviews(reviews) {
         ? new Date(review.created_at).toLocaleDateString("ko-KR")
         : "";
 
-      const replyHtml = review.reply
-        ? `
-          <div class="owner-reply"
-            style="margin-top:14px;padding:12px 14px;background:#f4f0e6;border-radius:8px;">
-            <strong style="display:block;margin-bottom:6px;">
-              사장님 답글
-            </strong>
-            <p style="margin:0;white-space:pre-wrap;">${escapeHtml(review.reply)}</p>
-          </div>
-        `
-        : "";
+
+      const replyHtml = `
+        <div class="owner-reply"
+          style="margin-top:14px;padding:12px 14px;background:#f4f0e6;border-radius:8px;">
+
+          ${
+            review.reply
+              ? `
+                <strong style="display:block;margin-bottom:6px;">
+                  사장님 답글
+                </strong>
+                <p style="margin:0 0 12px;white-space:pre-wrap;">${escapeHtml(review.reply)}</p>
+              `
+              : ""
+          }
+
+          ${
+            window.isAdminLoggedIn
+              ? `
+                <label for="reply-${escapeHtml(String(review.id))}"
+                  style="display:block;margin-bottom:6px;font-size:13px;">
+                  ${review.reply ? "답글 수정" : "답글 작성"}
+                </label>
+
+                <textarea
+                  id="reply-${escapeHtml(String(review.id))}"
+                  rows="3"
+                  maxlength="2000"
+                  placeholder="리뷰에 답글을 남겨 주세요."
+                  style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:8px;resize:vertical;"
+                >${escapeHtml(review.reply || "")}</textarea>
+
+                <button
+                  type="button"
+                  onclick="saveReviewReplyFromButton('${escapeHtml(String(review.id))}')"
+                  style="margin-top:8px;padding:9px 14px;border:0;border-radius:8px;cursor:pointer;"
+                >
+                  답글 저장
+                </button>
+              `
+              : ""
+          }
+        </div>
+      `;
 
       return `
         <article class="review-card">
