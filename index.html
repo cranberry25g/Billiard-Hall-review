@@ -565,6 +565,7 @@ function getVisitorId() {
   let cachedComments = [];
   let cachedLikes = [];
   
+
  // 리뷰 목록 화면에 표시
 function renderReviews(reviews, comments = [], likes = []) {
   if (!reviewList) return;
@@ -574,44 +575,33 @@ function renderReviews(reviews, comments = [], likes = []) {
   cachedLikes = likes;
 
   if (reviews.length === 0) {
-  
-  // 방문자 식별자 가져오기
-function getVisitorId() {
-  let visitorId = localStorage.getItem("fan_visitor_id");
-
-  if (!visitorId) {
-    visitorId = window.crypto?.randomUUID
-      ? window.crypto.randomUUID()
-      : "visitor-" + Date.now() + "-" +
-        Math.random().toString(36).slice(2);
-
-    localStorage.setItem("fan_visitor_id", visitorId);
-  }
-
-  return visitorId;
-}
-  if (!reviewList) return;
-
-  if (reviews.length === 0) {
     reviewList.innerHTML =
       '<p class="empty-reviews">아직 등록된 리뷰가 없습니다.</p>';
   } else {
-    const totalPages = Math.ceil(reviews.length / REVIEWS_PER_PAGE);
+    const totalPages = Math.ceil(
+      reviews.length / REVIEWS_PER_PAGE
+    );
 
-currentReviewPage = Math.min(currentReviewPage, totalPages);
+    currentReviewPage = Math.min(
+      Math.max(currentReviewPage, 1),
+      totalPages
+    );
 
-const startIndex = (currentReviewPage - 1) * REVIEWS_PER_PAGE;
-const pageReviews = reviews.slice(
-  startIndex,
-  startIndex + REVIEWS_PER_PAGE
-);
+    const startIndex =
+      (currentReviewPage - 1) * REVIEWS_PER_PAGE;
 
-reviewList.innerHTML = pageReviews.map((review) => {
+    const pageReviews = reviews.slice(
+      startIndex,
+      startIndex + REVIEWS_PER_PAGE
+    );
+
+    reviewList.innerHTML = pageReviews.map((review) => {
       const date = review.created_at
         ? new Date(review.created_at).toLocaleDateString("ko-KR")
         : "";
 
       const reviewId = String(review.id);
+
       let visitorId = localStorage.getItem("fan_visitor_id");
 
 if (!visitorId) {
